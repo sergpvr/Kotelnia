@@ -9,3 +9,7 @@
 28 FB C0 77 91 0D 02 2E  - sensor B8  <0.5C
 28 0E 43 77 91 0B 02 98  - sensor B9  <0.7C
 28 70 B9 77 91 11 02 03  - sensor B10  <0.5C
+
+
+28 13 5E B6 33 14 01 00  - temp - first floor - forward water stream
+28 CF 23 E1 32 14 01 CD  - temp - first floor - backward water stream
