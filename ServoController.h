@@ -52,6 +52,8 @@ class ServoController {
       waterPomp_off;
       servo.stop();
       setWishedTemp(20.0);
+      forwardTemp = _forwardTemp;
+      backwardTemp = _backwardTemp;
     }
     
     void setWishedTemp(float temp) {

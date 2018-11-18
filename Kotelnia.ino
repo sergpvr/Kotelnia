@@ -7,17 +7,16 @@
 
 
 //servo
-const int FIRST_FLOOR_WATER_POMP = 11;
-const int SERVO_1_CLOSE = 4;
-const int SERVO_1_OPEN = 5;
-const int SERVO_2_CLOSE = 6;
-const int SERVO_2_OPEN = 7;
+const uint8_t FIRST_FLOOR_WATER_POMP = 6;
+const uint8_t SERVO_1_CLOSE = 4;
+const uint8_t SERVO_1_OPEN = 5;
+const uint8_t SERVO_2_CLOSE = 6;
+const uint8_t SERVO_2_OPEN = 7;
 
 
-ServoHerz secondFloorServo;
+//ServoHerz secondFloorServo;
 ServoController firsFloorController;
 //
-
 
 TempCollector tempCollector(ONE_WIRE_BUS);
 
@@ -27,7 +26,7 @@ void setup(void) {
   firsFloorController.begin(SERVO_1_CLOSE, SERVO_1_OPEN, FIRST_FLOOR_WATER_POMP,
     tempCollector.getDeviceTempPtr(TempCollector::TempDeviceEnum::firstFloorForward), 
     tempCollector.getDeviceTempPtr(TempCollector::TempDeviceEnum::firstFloorBackward));
-  secondFloorServo.begin(SERVO_2_CLOSE, SERVO_2_OPEN);
+  //secondFloorServo.begin(SERVO_2_CLOSE, SERVO_2_OPEN);
   pinMode(LED_BUILTIN, OUTPUT);
   // start serial port
   Serial.begin(9600);
@@ -43,31 +42,7 @@ void setup(void) {
   if(numberOfDevices < 2) {
     alarm_on;
   }
-
-  
-  
-/*
-  // Start up the library
-  sensors.begin();
-  delay(500);
-  
-  // Grab a count of devices on the wire
-  numberOfDevices = sensors.getDeviceCount();
-  
-  // locate devices on the bus
-  Serial.print("Locating devices...");
-  
-  Serial.print("Found ");
-  Serial.print(numberOfDevices, DEC);
-  Serial.println(" devices.");
-
-  if(numberOfDevices < 2) {
-    alarm_on;
-  }
-
-  
-
-  */
+  //firsFloorController.setWishedTemp(14.0);
 }
 
 void loop(void) {
@@ -83,30 +58,8 @@ void loop(void) {
   Serial.print("firstFloorBackwardTemp: ");
   Serial.println(*tempCollector.getDeviceTempPtr(TempCollector::TempDeviceEnum::firstFloorBackward));
 
-  //firsFloorController.process();
+  firsFloorController.process();
 
   delay(5000);
 
 }
-
-
-/*
-// function to print a device address
-void printAddress(DeviceAddress deviceAddress)
-{
-  for (uint8_t i = 0; i < 8; i++)
-  {
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-    Serial.print(" ");
-  }
-}
-
-// function to print the temperature for a device
-void printTemperature(DeviceAddress deviceAddress)
-{
-  float tempC = sensors.getTempC(deviceAddress);
-  Serial.print("Temp C: ");
-  Serial.print(tempC);
-}
-*/
