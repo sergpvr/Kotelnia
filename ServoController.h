@@ -12,70 +12,120 @@
 #define waterPomp_off digitalWrite(pinWaterPomp, HIGH)
 
 class ServoController {
-  private:
-	  ServoHerz servo;
-	  float *forwardTemp;
-	  float *backwardTemp;
-	  float forwardTempAcc;
-	  float backwardTempAcc;
-	  float wishedTemp;
-	  uint8_t pinWaterPomp;
-	  const int deviation = 1;
-	  
-	  void stop() {
-	    waterPomp_off;
-      alarm_on;
-      servo.stop();
-	  }
-	  
-	  bool checkAndSaveTemperature() {
-	    if ( *forwardTemp < 0 && forwardTempAcc < 0 ) {
-        return false;
-	    }
-	    if ( *backwardTemp < 0 && backwardTempAcc < 0 ) {
-        return false;
-	    }
-	    if (*forwardTemp > 0 && *backwardTemp > 0 && *forwardTemp + deviation < *backwardTemp) {
-        return false;
-	    }
-	    
-	    forwardTempAcc = *forwardTemp;
-      backwardTempAcc = *backwardTemp;
-      return true; 
-	  }
-
-	public:
-		void begin(uint8_t _pinLeft, uint8_t _pinRight, uint8_t _pinWaterPomp, float *_forwardTemp, float *_backwardTemp) {
+  public:
+    void begin(uint8_t _pinLeft, uint8_t _pinRight, uint8_t _pinWaterPomp) {
       servo.begin(_pinLeft, _pinRight);
       pinWaterPomp = _pinWaterPomp;
       pinMode(_pinWaterPomp, OUTPUT);
       waterPomp_off;
       servo.stop();
-      setWishedTemp(20.0);
-      forwardTemp = _forwardTemp;
-      backwardTemp = _backwardTemp;
+      wishedTemp = defaultWishedTemp;
     }
     
     void setWishedTemp(float temp) {
       wishedTemp = temp;
     }
     
-    void process() {
-      if(!checkAndSaveTemperature()) {
-        stop();
+    void process(float forwardTemp, float backwardTemp) {
+      if(!checkAndSaveTemperature(forwardTemp, backwardTemp)) {
+        this->stopAndAlarm();
         return;
       }
-      if(*forwardTemp > wishedTemp + deviation) {
-        servo.left();
-      } else if (*forwardTemp  + deviation < wishedTemp) {
-        servo.right();
+      if(forwardTemp > wishedTemp + deviation) {
+        this->left();
+      } else if (forwardTemp  + deviation < wishedTemp) {
+        this->right();
       } else {
-        servo.stop();
+        this->stop();
       }
       waterPomp_on;
-      return;     
+      return;    
     }
-    
+
+  private:
+	  ServoHerz servo;
+	  float forwardTempAcc = 0;
+	  float backwardTempAcc = 0;
+	  float wishedTemp;
+	  uint8_t pinWaterPomp;
+   //
+	  const int deviation = 1;
+    static const int defaultWishedTemp = 20;
+    //
+    static const long interval = 150000; //150 sec
+    unsigned long previousMillis = 0;
+    bool movingLeftFlag = false;
+    bool movingRightFlag = false;
+    //
+	  
+	  void stopAndAlarm() {
+	    waterPomp_off;
+      alarm_on;
+      this->stop();
+	  }
+	  
+	  bool checkAndSaveTemperature(float forwardTemp, float backwardTemp) {
+	    if ( forwardTemp < 0 && forwardTempAcc < 0 ) {
+        return false;
+	    }
+	    if ( backwardTemp < 0 && backwardTempAcc < 0 ) {
+        return false;
+	    }
+	    if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
+        return false;
+	    }
+	    
+	    forwardTempAcc = forwardTemp;
+      backwardTempAcc = backwardTemp;
+      return true; 
+	  }
+
+    void left() {
+      unsigned long currentMillis = millis();
+      //overflow (go back to zero), after approximately 50 days
+      //check overflow:
+      if(previousMillis > currentMillis) {
+        previousMillis = currentMillis;
+      }
+      
+      if(movingLeftFlag) {
+        if (currentMillis - previousMillis >= interval) {
+          this->stop();
+        }
+      } else {
+        servo.left();
+        movingLeftFlag = true;
+        movingRightFlag = false;
+        previousMillis = currentMillis;
+      }  
+    }
+
+    void right() {
+      unsigned long currentMillis = millis();
+      //overflow (go back to zero), after approximately 50 days
+      //check overflow:
+      if(previousMillis > currentMillis) {
+        previousMillis = currentMillis;
+      }
+      
+      if(movingRightFlag) {
+        if (currentMillis - previousMillis >= interval) {
+          this->stop();
+        }
+      } else {
+        servo.right();
+        movingLeftFlag = false;
+        movingRightFlag = true;
+        previousMillis = currentMillis;      
+      }
+    }
+
+    void stop() {
+      servo.stop();
+      movingLeftFlag = false;
+      movingRightFlag = false;
+    }
+
 };
 
 #endif // __cplusplus

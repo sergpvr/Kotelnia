@@ -23,9 +23,7 @@ TempCollector tempCollector(ONE_WIRE_BUS);
 int numberOfDevices; // Number of temperature devices found
 
 void setup(void) {
-  firsFloorController.begin(SERVO_1_CLOSE, SERVO_1_OPEN, FIRST_FLOOR_WATER_POMP,
-    tempCollector.getDeviceTempPtr(TempCollector::TempDeviceEnum::firstFloorForward), 
-    tempCollector.getDeviceTempPtr(TempCollector::TempDeviceEnum::firstFloorBackward));
+  firsFloorController.begin(SERVO_1_CLOSE, SERVO_1_OPEN, FIRST_FLOOR_WATER_POMP);
   //secondFloorServo.begin(SERVO_2_CLOSE, SERVO_2_OPEN);
   pinMode(LED_BUILTIN, OUTPUT);
   // start serial port
@@ -54,11 +52,11 @@ void loop(void) {
   Serial.println();
 
   Serial.print("firstFloorForwardTemp: ");
-  Serial.println(*tempCollector.getDeviceTempPtr(TempCollector::TempDeviceEnum::firstFloorForward));
+  Serial.println(tempCollector.getTemp(FIRST_FLOOR_FORWARD_TEMP));
   Serial.print("firstFloorBackwardTemp: ");
-  Serial.println(*tempCollector.getDeviceTempPtr(TempCollector::TempDeviceEnum::firstFloorBackward));
+  Serial.println(tempCollector.getTemp(FIRST_FLOOR_BACKWARD_TEMP));
 
-  firsFloorController.process();
+  firsFloorController.process(tempCollector.getTemp(FIRST_FLOOR_FORWARD_TEMP), tempCollector.getTemp(FIRST_FLOOR_BACKWARD_TEMP));
 
   delay(5000);
 

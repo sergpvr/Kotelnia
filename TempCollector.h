@@ -16,6 +16,11 @@ struct TempDevice {
   TempDevice(const uint8_t* _deviceAddress) {deviceAddress = _deviceAddress;}
 };
 
+#define FIRST_FLOOR_FORWARD_TEMP    0
+#define FIRST_FLOOR_BACKWARD_TEMP   1
+#define SECOND_FLOOR_FORWARD_TEMP   2
+#define SECOND_FLOOR_BACKWARD_TEMP  3
+
 static const DeviceAddress firstFloorForwardTempAddr  = { 0x28, 0x13, 0x5E, 0xB6, 0x33, 0x14, 0x01, 0x00 };
 static const DeviceAddress firstFloorBackwardTempAddr = { 0x28, 0xCF, 0x23, 0xE1, 0x32, 0x14, 0x01, 0xCD };
 
@@ -34,13 +39,6 @@ class TempCollector {
           TempDevice(firstFloorForwardTempAddr),
           TempDevice(firstFloorBackwardTempAddr)
         } {}
-
-    enum TempDeviceEnum {
-      firstFloorForward=0,
-      firstFloorBackward=1,
-      secondFloorForward=2,
-      secondFloorBackward=3
-    };
 
     void begin() {
         // Start up the library
@@ -65,8 +63,8 @@ class TempCollector {
       return sensors.getDeviceCount();
     }
 
-    float* getDeviceTempPtr(TempDeviceEnum tempDeviceEnum) {
-      return &(tempDeviceList[tempDeviceEnum].temp);
+    float getTemp(uint8_t deviceNumber) {
+      return tempDeviceList[deviceNumber].temp;
     }
 
     void requestTemperatures() {
