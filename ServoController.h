@@ -8,8 +8,6 @@
 
 #define alarm_on digitalWrite(LED_BUILTIN, HIGH)
 #define alarm_off digitalWrite(LED_BUILTIN, LOW)
-#define waterPomp_on digitalWrite(pinWaterPomp, LOW)
-#define waterPomp_off digitalWrite(pinWaterPomp, HIGH)
 
 class ServoController {
   public:
@@ -17,11 +15,11 @@ class ServoController {
       servo.begin(_pinLeft, _pinRight);
       pinWaterPomp = _pinWaterPomp;
       pinMode(_pinWaterPomp, OUTPUT);
-      waterPomp_off;
+      waterPomp(false);
       servo.stop();
       wishedTemp = defaultWishedTemp;
     }
-    
+
     void setWishedTemp(float temp) {
       wishedTemp = temp;
     }
@@ -38,7 +36,7 @@ class ServoController {
       } else {
         this->stop();
       }
-      waterPomp_on;
+      waterPomp(true);
       return;    
     }
 
@@ -59,7 +57,7 @@ class ServoController {
     //
 	  
 	  void stopAndAlarm() {
-	    waterPomp_off;
+	    waterPomp(false);
       alarm_on;
       this->stop();
 	  }
@@ -125,6 +123,16 @@ class ServoController {
       movingLeftFlag = false;
       movingRightFlag = false;
     }
+
+    void waterPomp(bool stream) {
+      if(stream) {
+        digitalWrite(pinWaterPomp, HIGH);
+      } else {
+        digitalWrite(pinWaterPomp, LOW);
+      }
+    }
+    
+
 
 };
 

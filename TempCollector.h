@@ -23,6 +23,8 @@ struct TempDevice {
 
 static const DeviceAddress firstFloorForwardTempAddr  = { 0x28, 0x13, 0x5E, 0xB6, 0x33, 0x14, 0x01, 0x00 };
 static const DeviceAddress firstFloorBackwardTempAddr = { 0x28, 0xCF, 0x23, 0xE1, 0x32, 0x14, 0x01, 0xCD };
+static const DeviceAddress secondFloorForwardTempAddr  = { 0x28, 0x7B, 0x73, 0xDB, 0x32, 0x14, 0x01, 0xD0 };
+static const DeviceAddress secondFloorBackwardTempAddr = { 0x28, 0x9C, 0x18, 0xD2, 0x32, 0x14, 0x01, 0x8E };
 
 class TempCollector {
   private:
@@ -31,13 +33,15 @@ class TempCollector {
     // Pass our oneWire reference to Dallas Temperature. 
     DallasTemperature sensors;
 
-    const TempDevice tempDeviceList[2];
+    const TempDevice tempDeviceList[4];
 
 	public:
     TempCollector(uint8_t pin): oneWire(pin), sensors(&oneWire),
       tempDeviceList{
           TempDevice(firstFloorForwardTempAddr),
-          TempDevice(firstFloorBackwardTempAddr)
+          TempDevice(firstFloorBackwardTempAddr),
+          TempDevice(secondFloorForwardTempAddr),
+          TempDevice(secondFloorBackwardTempAddr)
         } {}
 
     void begin() {

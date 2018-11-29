@@ -16,24 +16,24 @@ class ServoHerz {
 		    pinRight = _pinRight;
 
 		    pinMode(pinLeft, OUTPUT);
-		    digitalWrite(pinLeft, HIGH);
-		    pinMode(pinRight, OUTPUT);
-		    digitalWrite(pinRight, HIGH);
-		  }
-
-		  void left() {
-		    digitalWrite(pinRight, HIGH);
 		    digitalWrite(pinLeft, LOW);
-		  }
-
-		  void right() {
-		    digitalWrite(pinLeft, HIGH);
+		    pinMode(pinRight, OUTPUT);
 		    digitalWrite(pinRight, LOW);
 		  }
 
-		  void stop() {
+		  void left() {
+		    digitalWrite(pinRight, LOW);
 		    digitalWrite(pinLeft, HIGH);
+		  }
+
+		  void right() {
+		    digitalWrite(pinLeft, LOW);
 		    digitalWrite(pinRight, HIGH);
+		  }
+
+		  void stop() {
+		    digitalWrite(pinLeft, LOW);
+		    digitalWrite(pinRight, LOW);
 		  }
 
 };
