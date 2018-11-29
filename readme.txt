@@ -13,3 +13,6 @@
 
 28 13 5E B6 33 14 01 00  - temp - first floor - forward water stream
 28 CF 23 E1 32 14 01 CD  - temp - first floor - backward water stream
+
+28 7B 73 DB 32 14 01 D0  - temp - second floor - forward water stream
+28 9C 18 D2 32 14 01 8E  - temp - second floor - backward water stream 

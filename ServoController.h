@@ -90,7 +90,7 @@ class ServoController {
       
       if(movingLeftFlag) {
         if (currentMillis - previousMillis >= interval) {
-          this->stop();
+          servo.stop();
         }
       } else {
         servo.left();
@@ -110,7 +110,7 @@ class ServoController {
       
       if(movingRightFlag) {
         if (currentMillis - previousMillis >= interval) {
-          this->stop();
+          servo.stop();
         }
       } else {
         servo.right();
