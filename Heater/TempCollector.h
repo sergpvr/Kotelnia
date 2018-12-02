@@ -16,11 +16,11 @@ struct TempDevice {
   TempDevice(const uint8_t* _deviceAddress) {deviceAddress = _deviceAddress;}
 };
 
-#define MIDDLE_HEATER_TEMP    0
+#define TOP_HEATER_TEMP       0
 #define BOTTOM_HEATER_TEMP    1
 
-
-static const DeviceAddress firstFloorForwardTempAddr  = { 0x28, 0x13, 0x5E, 0xB6, 0x33, 0x14, 0x01, 0x00 };
+//28 32 88 77 91 10 02 95
+static const DeviceAddress topHeaterTempAddr  = { 0x28, 0x32, 0x88, 0x77, 0x91, 0x10, 0x02, 0x95 };
 
 class TempCollector {
   private:
@@ -34,7 +34,7 @@ class TempCollector {
 	public:
     TempCollector(uint8_t pin): oneWire(pin), sensors(&oneWire),
       tempDeviceList{
-          TempDevice(middleHeaterTempAddr)
+          TempDevice(topHeaterTempAddr)
         } {}
 
     void begin() {

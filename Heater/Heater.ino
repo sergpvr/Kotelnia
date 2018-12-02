@@ -1,18 +1,21 @@
 #include <DS3231.h>
 #include <Wire.h>
 #include "TempCollector.h"
+#include "HeaterController.h"
 
 // Data wire is plugged into port ONE_WIRE_BUS on the Arduino
 #define ONE_WIRE_BUS 10
 
-
-#define alarm_on digitalWrite(LED_BUILTIN, HIGH)
-#define alarm_off digitalWrite(LED_BUILTIN, LOW)
+const uint8_t BOTTOM_HEATER1 = 3;
+const uint8_t BOTTOM_HEATER2 = 4;
+const uint8_t MIDDLE_HEATER  = 5;
 
 //
 TempCollector tempCollector(ONE_WIRE_BUS);
 
 int numberOfDevices; // Number of temperature devices found
+
+HeaterController heaterController;
 
 DS3231 Clock;
 
@@ -38,6 +41,8 @@ void setup() {
   // Start the I2C interface
   Wire.begin();
 
+  heaterController.begin(BOTTOM_HEATER1, BOTTOM_HEATER2, MIDDLE_HEATER);
+
 }
 
 void loop() {
@@ -49,10 +54,17 @@ void loop() {
   Serial.println("DONE");
   Serial.println();
 
-  Serial.print("firstFloorForwardTemp: ");
-  Serial.println(tempCollector.getTemp(FIRST_FLOOR_FORWARD_TEMP));
+  Serial.print("middleHeaterTemp: ");
+  Serial.println(tempCollector.getTemp(TOP_HEATER_TEMP));
+
+  byte curHour = Clock.getHour(h12, PM);
+  Serial.print("hour: ");
+  Serial.println(Clock.getHour(h12, PM), DEC);
+
+  heaterController.process(tempCollector.getTemp(TOP_HEATER_TEMP), curHour);
   
-  delay(1000);
+  delay(5000);
+  /*
   Serial.print(Clock.getYear(), DEC);
   Serial.print("-");
   Serial.print(Clock.getMonth(Century), DEC);
@@ -64,5 +76,5 @@ void loop() {
   Serial.print(Clock.getMinute(), DEC);
   Serial.print(":");
   Serial.println(Clock.getSecond(), DEC);
-  
+  */
 }

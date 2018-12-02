@@ -29,6 +29,9 @@ class ServoController {
         this->stopAndAlarm();
         return;
       }
+      if (forwardTemp < 0 || forwardTemp > 84) {
+        return; // to miss wrong parameter
+      }
       if(forwardTemp > wishedTemp + deviation) {
         this->left();
       } else if (forwardTemp  + deviation < wishedTemp) {
