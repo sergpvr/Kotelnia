@@ -4,11 +4,11 @@
 #include "HeaterController.h"
 
 // Data wire is plugged into port ONE_WIRE_BUS on the Arduino
-#define ONE_WIRE_BUS 10
+#define ONE_WIRE_BUS 7
 
-const uint8_t BOTTOM_HEATER1 = 3;
-const uint8_t BOTTOM_HEATER2 = 4;
-const uint8_t MIDDLE_HEATER  = 5;
+const uint8_t BOTTOM_HEATER1 = 4;
+const uint8_t BOTTOM_HEATER2 = 5;
+const uint8_t MIDDLE_HEATER  = 6;
 
 //
 TempCollector tempCollector(ONE_WIRE_BUS);
