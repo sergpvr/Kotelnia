@@ -49,6 +49,7 @@ class ServoController {
 	  float backwardTempAcc = 0;
 	  float wishedTemp;
 	  uint8_t pinWaterPomp;
+    bool _waterStream = false;
    //
 	  const int deviation = 1;
     static const int defaultWishedTemp = 20;
@@ -72,9 +73,15 @@ class ServoController {
 	    if ( backwardTemp < 0 && backwardTempAcc < 0 ) {
         return false;
 	    }
-	    /*if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
-        return false;
-	    }*/
+      if(_waterStream && millis() > 60000) { //60sec
+	      if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
+          return false;
+	      }
+        if( forwardTemp > 45 ) {
+          return false;
+        }
+      }
+
 	    
 	    forwardTempAcc = forwardTemp;
       backwardTempAcc = backwardTemp;
@@ -128,6 +135,7 @@ class ServoController {
     }
 
     void waterPomp(bool stream) {
+      _waterStream = stream;
       if(stream) {
         digitalWrite(pinWaterPomp, HIGH);
       } else {
