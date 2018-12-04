@@ -15,8 +15,11 @@ class HeaterController {
       pinBottomHeater2 = _pinBottomHeater2;
       pinMiddleHeater = _pinMiddleHeater;
       pinMode(pinBottomHeater1, OUTPUT);
+      digitalWrite(pinBottomHeater1, LOW);
       pinMode(pinBottomHeater2, OUTPUT);
+      digitalWrite(pinBottomHeater2, LOW);
       pinMode(pinMiddleHeater, OUTPUT);
+      digitalWrite(pinMiddleHeater, LOW);
     }
 
     void process(float topTemp, uint8_t hours) {
@@ -47,7 +50,7 @@ class HeaterController {
 	  uint8_t pinMiddleHeater;
     //
 	  static const int deviation = 10;
-    static const int nightAllowedTemp = 85;
+    static const int nightAllowedTemp = 80;
     static const int dayAllowedTemp = 50;
     //
 	  

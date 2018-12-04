@@ -72,9 +72,9 @@ class ServoController {
 	    if ( backwardTemp < 0 && backwardTempAcc < 0 ) {
         return false;
 	    }
-	    if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
+	    /*if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
         return false;
-	    }
+	    }*/
 	    
 	    forwardTempAcc = forwardTemp;
       backwardTempAcc = backwardTemp;

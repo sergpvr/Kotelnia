@@ -23,6 +23,8 @@ bool h12, PM, Century;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
+  
+  heaterController.begin(BOTTOM_HEATER1, BOTTOM_HEATER2, MIDDLE_HEATER);
   // start serial port
   Serial.begin(9600);
   Serial.println("Heater 1.0");
@@ -40,9 +42,6 @@ void setup() {
 
   // Start the I2C interface
   Wire.begin();
-
-  heaterController.begin(BOTTOM_HEATER1, BOTTOM_HEATER2, MIDDLE_HEATER);
-
 }
 
 void loop() {

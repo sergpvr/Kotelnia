@@ -37,8 +37,8 @@ void setup(void) {
   if(numberOfDevices < 2) {
     alarm_on;
   }
-  firsFloorController.setWishedTemp(23.0);
-  secondFloorController.setWishedTemp(23.0);
+  firsFloorController.setWishedTemp(30.0);
+  secondFloorController.setWishedTemp(30.0);
 }
 
 void loop(void) {
