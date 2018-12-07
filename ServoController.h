@@ -17,11 +17,11 @@ class ServoController {
       pinMode(_pinWaterPomp, OUTPUT);
       waterPomp(false);
       servo.stop();
-      wishedTemp = defaultWishedTemp;
+      requiredTemp = defaultRequiredTemp;
     }
 
-    void setWishedTemp(float temp) {
-      wishedTemp = temp;
+    void setRequiredTemp(float temp) {
+      requiredTemp = temp;
     }
     
     void process(float forwardTemp, float backwardTemp) {
@@ -29,82 +29,96 @@ class ServoController {
         this->stopAndAlarm();
         return;
       }
-      if (forwardTemp < 0 || forwardTemp > 84) {
-        return; // to miss wrong parameter
+      if (forwardTemp < 0) {
+        return; // to miss one wrong parameter
       }
-      if(forwardTemp > wishedTemp + deviation) {
+      if(forwardTemp > requiredTemp + deviation) {
         this->left();
-      } else if (forwardTemp  + deviation < wishedTemp) {
+      } else if (forwardTemp  + deviation < requiredTemp) {
         this->right();
       } else {
         this->stop();
       }
-      waterPomp(true);
       return;    
     }
 
   private:
-	  ServoHerz servo;
-	  float forwardTempAcc = 0;
-	  float backwardTempAcc = 0;
-	  float wishedTemp;
-	  uint8_t pinWaterPomp;
-    bool _waterStream = false;
-   //
-	  const int deviation = 1;
-    static const int defaultWishedTemp = 20;
+    ServoHerz servo;
+    float forwardTempAcc = 0;
+    float backwardTempAcc = 0;
+    float requiredTemp;
+    uint8_t pinWaterPomp;
+    //
+    const int deviation = 1;
+    static const int defaultRequiredTemp = 20;
     //
     static const long interval = 150000; //150 sec
-    unsigned long previousMillis = 0;
+    unsigned long servoRegulatorStartMovementTime = 0;
+    unsigned long waterPompStartTime = 0;
     bool movingLeftFlag = false;
     bool movingRightFlag = false;
+    bool waterPompFlag = false;
     //
-	  
-	  void stopAndAlarm() {
-	    waterPomp(false);
+
+    void stopAndAlarm() {
+      this->stop(); // it must be first because this method sets waterPompFlag to true
+      waterPomp(false);
       alarm_on;
-      this->stop();
-	  }
-	  
-	  bool checkAndSaveTemperature(float forwardTemp, float backwardTemp) {
-	    if ( forwardTemp < 0 && forwardTempAcc < 0 ) {
+    }
+
+    bool checkAndSaveTemperature(float forwardTemp, float backwardTemp) {
+      if ( forwardTemp < 0 && forwardTempAcc < 0 ) {
         return false;
-	    }
-	    if ( backwardTemp < 0 && backwardTempAcc < 0 ) {
+      }
+      if ( backwardTemp < 0 && backwardTempAcc < 0 ) {
         return false;
-	    }
-      if(_waterStream && millis() > 60000) { //60sec
-	      if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
-          return false;
-	      }
-        if( forwardTemp > 45 ) {
-          return false;
+      }
+      if(waterPompFlag) {
+        unsigned long currentMillis = millis();
+        //overflow (go back to zero), after approximately 50 days
+        //check overflow:
+        if(waterPompStartTime > currentMillis) {
+          waterPompStartTime = currentMillis;
+        }
+        if ( currentMillis - waterPompStartTime > interval ) {
+          // forward stream temperature should be less then backward stream
+          if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
+            return false;
+          }
+          // the temperature of the water floor should be less then 45
+          if( forwardTemp > 45 ) {
+            return false;
+          }
         }
       }
 
-	    
-	    forwardTempAcc = forwardTemp;
+      forwardTempAcc = forwardTemp;
       backwardTempAcc = backwardTemp;
       return true; 
-	  }
+    }
 
     void left() {
       unsigned long currentMillis = millis();
       //overflow (go back to zero), after approximately 50 days
       //check overflow:
-      if(previousMillis > currentMillis) {
-        previousMillis = currentMillis;
+      if(servoRegulatorStartMovementTime > currentMillis) {
+        servoRegulatorStartMovementTime = currentMillis;
       }
       
       if(movingLeftFlag) {
-        if (currentMillis - previousMillis >= interval) {
+        if (currentMillis - servoRegulatorStartMovementTime >= interval) {
+          // regulator is in a minimal position at this moment
           servo.stop();
+          // but temperature is sill high
+          // stoping waterPomp to floor protect
+          waterPomp(false);
         }
       } else {
+        waterPomp(true);
         servo.left();
         movingLeftFlag = true;
         movingRightFlag = false;
-        previousMillis = currentMillis;
+        servoRegulatorStartMovementTime = currentMillis;
       }  
     }
 
@@ -112,30 +126,42 @@ class ServoController {
       unsigned long currentMillis = millis();
       //overflow (go back to zero), after approximately 50 days
       //check overflow:
-      if(previousMillis > currentMillis) {
-        previousMillis = currentMillis;
+      if(servoRegulatorStartMovementTime > currentMillis) {
+        servoRegulatorStartMovementTime = currentMillis;
       }
       
       if(movingRightFlag) {
-        if (currentMillis - previousMillis >= interval) {
+        if (currentMillis - servoRegulatorStartMovementTime >= interval) {
+          // regulator is in a maximum position  at this moment
           servo.stop();
+          // but temperature is sill low
+          // stoping waterPomp to keep floor heated
+          waterPomp(false);
         }
       } else {
+        waterPomp(true);
         servo.right();
         movingLeftFlag = false;
         movingRightFlag = true;
-        previousMillis = currentMillis;      
+        servoRegulatorStartMovementTime = currentMillis;
       }
     }
 
     void stop() {
+      // temperature of the water stream is close to required
+      // keeping regulator in this position
       servo.stop();
       movingLeftFlag = false;
       movingRightFlag = false;
+      waterPomp(true);
     }
 
     void waterPomp(bool stream) {
-      _waterStream = stream;
+      if(!waterPompFlag && stream) {
+        // it is first command to start
+        waterPompStartTime = millis();
+      }
+      waterPompFlag = stream;
       if(stream) {
         digitalWrite(pinWaterPomp, HIGH);
       } else {
