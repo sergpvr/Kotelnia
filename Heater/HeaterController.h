@@ -32,7 +32,7 @@ class HeaterController {
         return; // to miss wrong parameter
       }
       
-      int allowedTemp = hours >= 0 && hours <= 7 ? nightAllowedTemp : dayAllowedTemp;
+      int allowedTemp = hours >= 0 && hours < 7 ? nightAllowedTemp : dayAllowedTemp;
       
       if(topTemp > allowedTemp) {
         this->stop();
@@ -50,7 +50,7 @@ class HeaterController {
 	  uint8_t pinMiddleHeater;
     //
 	  static const int deviation = 10;
-    static const int nightAllowedTemp = 80;
+    static const int nightAllowedTemp = 85;
     static const int dayAllowedTemp = 50;
     //
 	  
