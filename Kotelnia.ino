@@ -4,6 +4,7 @@
 // Data wire is plugged into port ONE_WIRE_BUS on the Arduino
 #define ONE_WIRE_BUS 10
 
+unsigned long previousMillisecond = 0;
 //servo
 const uint8_t FIRST_FLOOR_WATER_POMP = 6;
 const uint8_t SECOND_FLOOR_WATER_POMP = 7;
@@ -19,7 +20,16 @@ TempCollector tempCollector(ONE_WIRE_BUS);
 
 int numberOfDevices; // Number of temperature devices found
 
+long interval = 5000; //5 sec
+unsigned long currentMillis;
+
+String inputString = "";      // a String to hold incoming data
+bool stringComplete = false;  // whether the string is complete
+
 void setup(void) {
+  // reserve 200 bytes for the inputString:
+  inputString.reserve(200);
+  
   firsFloorController.begin(SERVO_1_CLOSE, SERVO_1_OPEN, FIRST_FLOOR_WATER_POMP);
   secondFloorController.begin(SERVO_2_CLOSE, SERVO_2_OPEN, SECOND_FLOOR_WATER_POMP);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -42,6 +52,23 @@ void setup(void) {
 }
 
 void loop(void) {
+
+  currentMillis = millis();
+  //overflow (go back to zero), after approximately 50 days
+  //check overflow:
+  if(previousMillisecond > currentMillis) {
+    previousMillisecond = currentMillis;
+  }
+  if (currentMillis - previousMillisecond >= interval) {
+    previousMillisecond = currentMillis;
+    floorControl();  
+  }
+
+  processInputString();
+
+}
+
+void floorControl() {
   // call sensors.requestTemperatures() to issue a global temperature 
   // request to all devices on the bus
   Serial.print("Requesting temperatures...");
@@ -60,7 +87,27 @@ void loop(void) {
 
   firsFloorController.process(tempCollector.getTemp(FIRST_FLOOR_FORWARD_TEMP), tempCollector.getTemp(FIRST_FLOOR_BACKWARD_TEMP));
   secondFloorController.process(tempCollector.getTemp(SECOND_FLOOR_FORWARD_TEMP), tempCollector.getTemp(SECOND_FLOOR_BACKWARD_TEMP));
+}
 
-  delay(5000);
+void serialEvent() {
+  while (Serial.available()) {
+    // get the new byte:
+    char inChar = (char)Serial.read();
+    // add it to the inputString:
+    inputString += inChar;
+    // if the incoming character is a newline, set a flag so the main loop can
+    // do something about it:
+    if (inChar == '\n') {
+      stringComplete = true;
+    }
+  }
+}
 
+void processInputString() {
+  if (stringComplete) {
+    Serial.println(inputString);
+    // clear the string:
+    inputString = "";
+    stringComplete = false;
+  }
 }

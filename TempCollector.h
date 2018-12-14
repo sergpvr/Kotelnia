@@ -73,7 +73,7 @@ class TempCollector {
 
     void requestTemperatures() {
       sensors.requestTemperatures();
-      delay(500);
+      delay(100);
       const uint8_t n = sizeof(tempDeviceList)/ sizeof( TempDevice );
       TempDevice* td;
       for(uint8_t i = 0; i < n ; i++){
