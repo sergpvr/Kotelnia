@@ -31,6 +31,8 @@ class HeaterController {
       if (topTemp < 0) {
         return; // to miss wrong parameter
       }
+
+      alarm_off;
       
       int allowedTemp = hours >= 0 && hours < 7 ? nightAllowedTemp : dayAllowedTemp;
       
@@ -49,9 +51,9 @@ class HeaterController {
 	  uint8_t pinBottomHeater2;
 	  uint8_t pinMiddleHeater;
     //
-	  static const int deviation = 10;
+	  static const int deviation = 20;
     static const int nightAllowedTemp = 85;
-    static const int dayAllowedTemp = 50;
+    static const int dayAllowedTemp = 60;
     //
 	  
 	  void stopAndAlarm() {

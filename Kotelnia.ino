@@ -1,15 +1,16 @@
 #include "ServoController.h"
 #include "TempCollector.h"
+#include "SerialComm.h"
 
 // Data wire is plugged into port ONE_WIRE_BUS on the Arduino
-#define ONE_WIRE_BUS 10
+#define ONE_WIRE_BUS 8  //10
 
 unsigned long previousMillisecond = 0;
 //servo
 const uint8_t FIRST_FLOOR_WATER_POMP = 6;
 const uint8_t SECOND_FLOOR_WATER_POMP = 7;
 const uint8_t SERVO_1_CLOSE = 3;
-const uint8_t SERVO_1_OPEN = 2;
+const uint8_t SERVO_1_OPEN = 10; //2
 const uint8_t SERVO_2_CLOSE = 4;
 const uint8_t SERVO_2_OPEN = 5;
 
@@ -23,12 +24,9 @@ int numberOfDevices; // Number of temperature devices found
 long interval = 5000; //5 sec
 unsigned long currentMillis;
 
-String inputString = "";      // a String to hold incoming data
-bool stringComplete = false;  // whether the string is complete
+SerialComm comm(&Serial);
 
 void setup(void) {
-  // reserve 200 bytes for the inputString:
-  inputString.reserve(200);
   
   firsFloorController.begin(SERVO_1_CLOSE, SERVO_1_OPEN, FIRST_FLOOR_WATER_POMP);
   secondFloorController.begin(SERVO_2_CLOSE, SERVO_2_OPEN, SECOND_FLOOR_WATER_POMP);
@@ -64,7 +62,7 @@ void loop(void) {
     floorControl();  
   }
 
-  processInputString();
+  comm.process();
 
 }
 
@@ -90,24 +88,5 @@ void floorControl() {
 }
 
 void serialEvent() {
-  while (Serial.available()) {
-    // get the new byte:
-    char inChar = (char)Serial.read();
-    // add it to the inputString:
-    inputString += inChar;
-    // if the incoming character is a newline, set a flag so the main loop can
-    // do something about it:
-    if (inChar == '\n') {
-      stringComplete = true;
-    }
-  }
-}
-
-void processInputString() {
-  if (stringComplete) {
-    Serial.println(inputString);
-    // clear the string:
-    inputString = "";
-    stringComplete = false;
-  }
+  comm.serialEvent();
 }
