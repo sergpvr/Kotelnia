@@ -34,12 +34,15 @@ class HeaterController {
 
       alarm_off;
       
-      int allowedTemp = hours >= 0 && hours < 7 ? nightAllowedTemp : dayAllowedTemp;
+      int allowedTemp = (hours == 23 || (hours >= 0 && hours < 7)) ? nightAllowedTemp : dayAllowedTemp;
+      int bottomLevelTemp = allowedTemp - deviation;
       
       if(topTemp > allowedTemp) {
         this->stop();
-      } else if (topTemp  < (allowedTemp - deviation)) {
-        this->start();
+      } else {
+        if (topTemp < bottomLevelTemp) {
+          this->start();
+        }
       }
       return;    
     }
@@ -52,9 +55,10 @@ class HeaterController {
 	  uint8_t pinMiddleHeater;
     //
 	  static const int deviation = 20;
-    static const int nightAllowedTemp = 85;
+    static const int nightAllowedTemp = 80;
     static const int dayAllowedTemp = 60;
     //
+    bool heat = false;
 	  
 	  void stopAndAlarm() {
       alarm_on;
@@ -71,19 +75,27 @@ class HeaterController {
 	  }
 	  
 	  void start() {
-	    digitalWrite(pinBottomHeater1, HIGH);
-	    delay(1000);
-	    digitalWrite(pinBottomHeater2, HIGH);
-	    delay(1000);
-	    digitalWrite(pinMiddleHeater, HIGH);
+      if(!heat) {
+  	    digitalWrite(pinBottomHeater1, HIGH);
+  	    delay(1000);
+  	    digitalWrite(pinBottomHeater2, HIGH);
+  	    delay(1000);
+  	    digitalWrite(pinMiddleHeater, HIGH);
+
+        heat = true;
+      }
 	  }
 
     void stop() {
-	    digitalWrite(pinBottomHeater1, LOW);
-	    delay(1000);
-	    digitalWrite(pinBottomHeater2, LOW);
-	    delay(1000);
-	    digitalWrite(pinMiddleHeater, LOW);
+      if(heat) {
+  	    digitalWrite(pinBottomHeater1, LOW);
+  	    delay(1000);
+  	    digitalWrite(pinBottomHeater2, LOW);
+  	    delay(1000);
+  	    digitalWrite(pinMiddleHeater, LOW);
+
+       heat = false;
+      }
     }
 
 };

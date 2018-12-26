@@ -22,6 +22,7 @@ DS3231 Clock;
 bool h12, PM, Century;
 
 void setup() {
+  delay(1000);
   pinMode(LED_BUILTIN, OUTPUT);
   
   heaterController.begin(BOTTOM_HEATER1, BOTTOM_HEATER2, MIDDLE_HEATER);
@@ -53,14 +54,15 @@ void loop() {
   Serial.println("DONE");
   Serial.println();
 
-  Serial.print("middleHeaterTemp: ");
-  Serial.println(tempCollector.getTemp(TOP_HEATER_TEMP));
+  Serial.print("topHeaterTemp: ");
+  float topHeaterTemp = tempCollector.getTemp(TOP_HEATER_TEMP);
+  Serial.println(topHeaterTemp);
 
   byte curHour = Clock.getHour(h12, PM);
   Serial.print("hour: ");
-  Serial.println(Clock.getHour(h12, PM), DEC);
+  Serial.println(curHour, DEC);
 
-  heaterController.process(tempCollector.getTemp(TOP_HEATER_TEMP), curHour);
+  heaterController.process(topHeaterTemp, curHour);
   
   delay(5000);
   /*
