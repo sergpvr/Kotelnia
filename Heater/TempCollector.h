@@ -19,8 +19,11 @@ struct TempDevice {
 #define TOP_HEATER_TEMP       0
 #define BOTTOM_HEATER_TEMP    1
 
-//28 32 88 77 91 10 02 95
-static const DeviceAddress topHeaterTempAddr  = { 0x28, 0x32, 0x88, 0x77, 0x91, 0x10, 0x02, 0x95 };
+//28 A6 AA 77 91 0D 02 E6  - sensor B5  <1C
+//28 FE 0C 77 91 04 02 74  - sensor B6  <0.8C
+
+static const DeviceAddress topHeaterTempAddr    = { 0x28, 0xFE, 0x0C, 0x77, 0x91, 0x04, 0x02, 0x74 };
+static const DeviceAddress bottomHeaterTempAddr = { 0x28, 0xA6, 0xAA, 0x77, 0x91, 0x0D, 0x02, 0xE6 };
 
 class TempCollector {
   private:
@@ -29,12 +32,13 @@ class TempCollector {
     // Pass our oneWire reference to Dallas Temperature. 
     DallasTemperature sensors;
 
-    const TempDevice tempDeviceList[1];
+    const TempDevice tempDeviceList[2];
 
 	public:
     TempCollector(uint8_t pin): oneWire(pin), sensors(&oneWire),
       tempDeviceList{
-          TempDevice(topHeaterTempAddr)
+          TempDevice(topHeaterTempAddr),
+          TempDevice(bottomHeaterTempAddr)
         } {}
 
     void begin() {

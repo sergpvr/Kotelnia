@@ -22,20 +22,22 @@ class HeaterController {
       digitalWrite(pinMiddleHeater, LOW);
     }
 
-    void process(float topTemp, uint8_t hours) {
-      if(!checkAndSaveTemperature(topTemp)) {
+    void process(float topTemp, float bottomTemp, uint8_t hours) {
+      if(!checkAndSaveTemperature(topTemp, bottomTemp)) {
         this->stopAndAlarm();
         return;
       }
       
-      if (topTemp < 0) {
+      if (topTemp < 10) {
         return; // to miss wrong parameter
       }
 
       alarm_off;
+
+      bool nightMode = hours == 23 || (hours >= 0 && hours < 7);
       
-      int allowedTemp = (hours == 23 || (hours >= 0 && hours < 7)) ? nightAllowedTemp : dayAllowedTemp;
-      int bottomLevelTemp = allowedTemp - deviation;
+      int allowedTemp =  nightMode ? nightAllowedTemp : dayAllowedTemp;
+      int bottomLevelTemp = allowedTemp - (hours == 6 ? 5 : deviation);
       
       if(topTemp > allowedTemp) {
         this->stop();
@@ -49,6 +51,7 @@ class HeaterController {
 
   private:
 	  float topTempAcc = 0;
+    float bottomTempAcc = 0;
 	  //
 	  uint8_t pinBottomHeater1;
 	  uint8_t pinBottomHeater2;
@@ -65,12 +68,23 @@ class HeaterController {
       this->stop();
 	  }
 	  
-	  bool checkAndSaveTemperature(float topTemp) {
+	  bool checkAndSaveTemperature(float topTemp, float bottomTemp) {
 	    if ( topTemp < 0 && topTempAcc < 0 ) {
         return false;
 	    }
-   
-	    topTempAcc = topTemp;
+      if ( bottomTemp < 0 && bottomTempAcc < 0 ) {
+        return false;
+      }
+
+      topTempAcc = topTemp;
+      bottomTempAcc = bottomTemp;
+
+      if ( topTemp > 0 && bottomTemp > 0 ) {
+        if (topTemp + 1 < bottomTemp) {
+          return false;
+        }
+      }
+
       return true; 
 	  }
 	  

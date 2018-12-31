@@ -58,11 +58,16 @@ void loop() {
   float topHeaterTemp = tempCollector.getTemp(TOP_HEATER_TEMP);
   Serial.println(topHeaterTemp);
 
+  Serial.print("bottomHeaterTemp: ");
+  float bottomHeaterTemp = tempCollector.getTemp(BOTTOM_HEATER_TEMP);
+  Serial.println(bottomHeaterTemp);
+
+
   byte curHour = Clock.getHour(h12, PM);
   Serial.print("hour: ");
   Serial.println(curHour, DEC);
 
-  heaterController.process(topHeaterTemp, curHour);
+  heaterController.process(topHeaterTemp, bottomHeaterTemp, curHour);
   
   delay(5000);
   /*
