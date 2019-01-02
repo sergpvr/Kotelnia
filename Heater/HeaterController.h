@@ -37,7 +37,7 @@ class HeaterController {
       bool nightMode = hours == 23 || (hours >= 0 && hours < 7);
       
       int allowedTemp =  nightMode ? nightAllowedTemp : dayAllowedTemp;
-      int bottomLevelTemp = allowedTemp - (hours == 6 ? 5 : deviation);
+      int bottomLevelTemp = allowedTemp - (hours == 5 || hours == 6 ? 5 : deviation);
       
       if(topTemp > allowedTemp) {
         this->stop();
@@ -79,8 +79,8 @@ class HeaterController {
       topTempAcc = topTemp;
       bottomTempAcc = bottomTemp;
 
-      if ( topTemp > 0 && bottomTemp > 0 ) {
-        if (topTemp + 1 < bottomTemp) {
+      if ( topTemp > 10 && bottomTemp > 10 ) {
+        if (topTemp + 10 < bottomTemp) {
           return false;
         }
       }

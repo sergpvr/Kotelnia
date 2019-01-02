@@ -8,7 +8,7 @@
 #include <DallasTemperature.h>
 
 
-#define TEMPERATURE_PRECISION 10 // 9, 10, 11, 12
+#define TEMPERATURE_PRECISION 9 // 9, 10, 11, 12
 
 struct TempDevice {
   const uint8_t* deviceAddress;
@@ -44,7 +44,7 @@ class TempCollector {
     void begin() {
         // Start up the library
         sensors.begin();
-        delay(500);
+        delay(50);
         // Loop through each device
         DeviceAddress tempDeviceAddress;
         for(uint8_t i=0; i<sensors.getDeviceCount(); i++)
@@ -70,7 +70,7 @@ class TempCollector {
 
     void requestTemperatures() {
       sensors.requestTemperatures();
-      delay(500);
+      delay(50);
       const uint8_t n = sizeof(tempDeviceList)/ sizeof( TempDevice );
       TempDevice* td;
       for(uint8_t i = 0; i < n ; i++){
