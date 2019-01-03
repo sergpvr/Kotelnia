@@ -69,7 +69,7 @@ void loop() {
 
   heaterController.process(topHeaterTemp, bottomHeaterTemp, curHour);
   
-  delay(5000);
+  delay(10000);
   /*
   Serial.print(Clock.getYear(), DEC);
   Serial.print("-");

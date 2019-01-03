@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 
 #include <Arduino.h>
+#include "DigitalFilter.h"
 
 #define alarm_on digitalWrite(LED_BUILTIN, HIGH)
 #define alarm_off digitalWrite(LED_BUILTIN, LOW)
@@ -22,14 +23,12 @@ class HeaterController {
       digitalWrite(pinMiddleHeater, LOW);
     }
 
-    void process(float topTemp, float bottomTemp, uint8_t hours) {
+    void process(int8_t _topTemp, int8_t _bottomTemp, uint8_t hours) {
+      int8_t topTemp = dFilterTop.doFilter(_topTemp);
+      int8_t bottomTemp = dFilterBottom.doFilter(_bottomTemp);
       if(!checkAndSaveTemperature(topTemp, bottomTemp)) {
         this->stopAndAlarm();
         return;
-      }
-      
-      if (topTemp < 10) {
-        return; // to miss wrong parameter
       }
 
       alarm_off;
@@ -37,7 +36,7 @@ class HeaterController {
       bool nightMode = hours == 23 || (hours >= 0 && hours < 7);
       
       int allowedTemp =  nightMode ? nightAllowedTemp : dayAllowedTemp;
-      int bottomLevelTemp = allowedTemp - (hours == 5 || hours == 6 ? 5 : deviation);
+      int bottomLevelTemp = allowedTemp - (hours == 6 ? 5 : deviation);
       
       if(topTemp > allowedTemp) {
         this->stop();
@@ -50,16 +49,16 @@ class HeaterController {
     }
 
   private:
-	  float topTempAcc = 0;
-    float bottomTempAcc = 0;
+    DigitalFilter dFilterTop = DigitalFilter(50);
+    DigitalFilter dFilterBottom = DigitalFilter(50);
 	  //
 	  uint8_t pinBottomHeater1;
 	  uint8_t pinBottomHeater2;
 	  uint8_t pinMiddleHeater;
     //
-	  static const int deviation = 20;
-    static const int nightAllowedTemp = 80;
-    static const int dayAllowedTemp = 60;
+	  static const int8_t deviation = 20;
+    static const int8_t nightAllowedTemp = 80;
+    static const int8_t dayAllowedTemp = 60;
     //
     bool heat = false;
 	  
@@ -68,23 +67,18 @@ class HeaterController {
       this->stop();
 	  }
 	  
-	  bool checkAndSaveTemperature(float topTemp, float bottomTemp) {
-	    if ( topTemp < 0 && topTempAcc < 0 ) {
+	  bool checkAndSaveTemperature(int8_t topTemp, int8_t bottomTemp) {
+	    if ( topTemp < 0 ) {
         return false;
 	    }
-      if ( bottomTemp < 0 && bottomTempAcc < 0 ) {
+      if ( bottomTemp < 0 ) {
         return false;
       }
 
-      topTempAcc = topTemp;
-      bottomTempAcc = bottomTemp;
-
-      if ( topTemp > 10 && bottomTemp > 10 ) {
-        if (topTemp + 10 < bottomTemp) {
-          return false;
-        }
+      if (topTemp + 10 < bottomTemp) {
+        return false;
       }
-
+      
       return true; 
 	  }
 	  
