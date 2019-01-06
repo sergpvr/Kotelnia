@@ -24,6 +24,28 @@ class HeaterController {
     }
 
     void process(int8_t _topTemp, int8_t _bottomTemp, uint8_t hours) {
+      // it's temporary to fix sensor's bugs
+      if (_topTemp < 15 || _topTemp > 90) {
+        if ( ++wrongTopValue > 3 ) {
+          this->stopAndAlarm();
+          return;
+        }
+        return;
+      } else {
+        wrongTopValue = 0;
+      }
+
+      if (_bottomTemp < 15 || _bottomTemp > 90 ) {
+        if ( ++wrongBottomValue > 3 ) {
+          this->stopAndAlarm();
+          return;
+        }
+        return;
+      } else {
+        wrongBottomValue = 0;
+      }
+      //
+
       int8_t topTemp = dFilterTop.doFilter(_topTemp);
       int8_t bottomTemp = dFilterBottom.doFilter(_bottomTemp);
       if(!checkAndSaveTemperature(topTemp, bottomTemp)) {
@@ -33,8 +55,8 @@ class HeaterController {
 
       alarm_off;
 
-      bool nightMode = hours == 23 || (hours >= 0 && hours < 7);
-      
+      bool nightMode = hours >= 4 && hours < 7; //hours == 23 || (hours >= 0 && hours < 7);
+
       int allowedTemp =  nightMode ? nightAllowedTemp : dayAllowedTemp;
       int bottomLevelTemp = allowedTemp - (hours == 6 ? 5 : deviation);
       
@@ -51,6 +73,9 @@ class HeaterController {
   private:
     DigitalFilter dFilterTop = DigitalFilter(50);
     DigitalFilter dFilterBottom = DigitalFilter(50);
+    uint8_t wrongTopValue = 0;
+    uint8_t wrongBottomValue = 0;
+
 	  //
 	  uint8_t pinBottomHeater1;
 	  uint8_t pinBottomHeater2;
