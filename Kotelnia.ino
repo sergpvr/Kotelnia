@@ -9,8 +9,8 @@ unsigned long previousMillisecond = 0;
 //servo
 const uint8_t FIRST_FLOOR_WATER_POMP = 6;
 const uint8_t SECOND_FLOOR_WATER_POMP = 7;
-const uint8_t SERVO_1_CLOSE = 3;
-const uint8_t SERVO_1_OPEN = 2;
+const uint8_t SERVO_1_CLOSE = 2;
+const uint8_t SERVO_1_OPEN = 3;
 const uint8_t SERVO_2_CLOSE = 4;
 const uint8_t SERVO_2_OPEN = 5;
 
@@ -45,8 +45,8 @@ void setup(void) {
   if(numberOfDevices < 2) {
     alarm_on;
   }
-  firsFloorController.setRequiredTemp(28.0);
-  secondFloorController.setRequiredTemp(28.0);
+  firsFloorController.setRequiredTemp(30.0);
+  secondFloorController.setRequiredTemp(30.0);
 }
 
 void loop(void) {
