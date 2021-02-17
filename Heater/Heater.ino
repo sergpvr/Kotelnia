@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include "TempCollector.h"
 #include "HeaterController.h"
+#include "HeaterSerial.h"
 
 // Data wire is plugged into port ONE_WIRE_BUS on the Arduino
 #define ONE_WIRE_BUS 7
@@ -13,11 +14,21 @@ const uint8_t MIDDLE_HEATER  = 6;
 //
 TempCollector tempCollector(ONE_WIRE_BUS);
 
+HeaterSerial heaterSerial(&Serial);
+
 int numberOfDevices; // Number of temperature devices found
 
 HeaterController heaterController;
 
 DS3231 Clock;
+
+byte year;
+byte month;
+byte date;
+byte doW;
+byte hour;
+byte minute;
+byte second;
 
 bool h12, PM, Century;
 
@@ -68,9 +79,30 @@ void loop() {
   Serial.println(curHour, DEC);
 
   heaterController.process(topHeaterTemp, bottomHeaterTemp, curHour);
-  
+
+  heaterSerial.serialEvent();
+  if (heaterSerial.getDateStuff(year, month, date, doW, hour, minute, second)) {
+    // The stuff coming in should be in
+    // the order YYMMDDwHHMMSS, with an 'x' at the end.
+    Clock.setClockMode(false);  // set to 24h
+
+    Clock.setYear(year);
+    Clock.setMonth(month);
+    Clock.setDate(date);
+    Clock.setDoW(doW);
+    Clock.setHour(hour);
+    Clock.setMinute(minute);
+    Clock.setSecond(second);
+
+    printClock();
+
+  }
+
   delay(10000);
-  /*
+
+}
+
+void printClock() {
   Serial.print(Clock.getYear(), DEC);
   Serial.print("-");
   Serial.print(Clock.getMonth(Century), DEC);
@@ -82,5 +114,4 @@ void loop() {
   Serial.print(Clock.getMinute(), DEC);
   Serial.print(":");
   Serial.println(Clock.getSecond(), DEC);
-  */
 }

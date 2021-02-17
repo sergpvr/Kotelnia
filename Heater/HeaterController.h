@@ -82,7 +82,7 @@ class HeaterController {
 	  uint8_t pinMiddleHeater;
     //
 	  static const int8_t deviation = 20;
-    static const int8_t nightAllowedTemp = 80;
+    static const int8_t nightAllowedTemp = 85;
     static const int8_t dayAllowedTemp = 60;
     //
     bool heat = false;

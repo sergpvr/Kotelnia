@@ -9,11 +9,15 @@ class SerialComm {
   public:
     SerialComm(HardwareSerial *_serial): serial(_serial) {
       // reserve 200 bytes for the inputString:
-      inputString.reserve(200);
+      inputString.reserve(100);
 
     }
     
     void serialEvent() {
+      if (stringComplete == true) {
+        return;
+      }
+
       while (serial->available()) {
         // get the new byte:
         char inChar = (char)serial->read();
@@ -23,10 +27,11 @@ class SerialComm {
         // do something about it:
         if (inChar == '\n') {
           stringComplete = true;
+          break;
         }
       }
-	  }
-   
+    }
+
     void process() {
       if (stringComplete) {
         serial->println(inputString);
@@ -37,7 +42,7 @@ class SerialComm {
     }
     
   private:
-    HardwareSerial *serial;  
+    HardwareSerial *serial;
     String inputString = "";      // a String to hold incoming data
     bool stringComplete = false;  // whether the string is complete
 };
