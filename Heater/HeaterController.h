@@ -55,16 +55,19 @@ class HeaterController {
 
       alarm_off;
 
-      bool nightMode = hours >= 4 && hours < 7; //hours == 23 || (hours >= 0 && hours < 7);
+      bool nightTime = hours == 23 || (hours >= 0 && hours < 7); // from 11 PM to 7 AM
+      bool lastPartOfNight = hours >= 4 && hours < 7; // from 4 AM to 7 AM
 
-      int allowedTemp =  nightMode ? nightAllowedTemp : dayAllowedTemp;
-      int bottomLevelTemp = allowedTemp - (hours == 6 ? 5 : deviation);
+      int allowedTemp =  lastPartOfNight ? nightAllowedTemp : dayAllowedTemp;
+      int bottomLevelTemp = allowedTemp - (hours == 6 ? 5 : (lastPartOfNight? nightDeviation : deviation));
       
       if(topTemp > allowedTemp) {
         this->stop();
       } else {
         if (topTemp < bottomLevelTemp) {
-          this->start();
+          if(nightTime || heatDuringTheDay) { // switch ON only at night if nightHeaterOnly mode
+            this->start();
+          }
         }
       }
       return;    
@@ -81,9 +84,11 @@ class HeaterController {
 	  uint8_t pinBottomHeater2;
 	  uint8_t pinMiddleHeater;
     //
-	  static const int8_t deviation = 20;
-    static const int8_t nightAllowedTemp = 85;
+	  static const int8_t deviation = 18;
+    static const int8_t nightDeviation = 28;
+    static const int8_t nightAllowedTemp = 70;//85
     static const int8_t dayAllowedTemp = 60;
+    static const boolean heatDuringTheDay = false;
     //
     bool heat = false;
 	  
