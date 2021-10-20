@@ -32,12 +32,20 @@ class ServoController {
       if (forwardTemp < 0) {
         return; // to miss one wrong parameter
       }
+
+      if (waitingHigherTemp) {
+        if ( forwardTemp > 40 || backwardTemp > 40 ) {
+          this->stopServoWaterPompOn();
+          waitingHigherTemp = false;
+        }
+      }
+
       if(forwardTemp > requiredTemp + deviation) {
         this->left();
-      } else if (forwardTemp  + deviation < requiredTemp) {
+      } else if (forwardTemp + deviation < requiredTemp) {
         this->right();
       } else {
-        this->stop();
+        this->stopServoWaterPompOn();
       }
       return;    
     }
@@ -58,11 +66,12 @@ class ServoController {
     bool movingLeftFlag = false;
     bool movingRightFlag = false;
     bool waterPompFlag = false;
+    bool waitingHigherTemp = false;
     //
 
     void stopAndAlarm() {
-      this->stop(); // it must be first because this method sets waterPompFlag to true
-      waterPomp(false);
+      this->stopServoWaterPompOn(); // it must be first because this method sets waterPompFlag to true
+      this->waterPomp(false);
       alarm_on;
     }
 
@@ -74,19 +83,13 @@ class ServoController {
         return false;
       }
       if(waterPompFlag) {
-        unsigned long currentMillis = millis();
-        //overflow (go back to zero), after approximately 50 days
-        //check overflow:
-        if(waterPompStartTime > currentMillis) {
-          waterPompStartTime = currentMillis;
-        }
-        if ( currentMillis - waterPompStartTime > interval ) {
+        if (outOfTimeInterval(millis(), waterPompStartTime, interval)) {
           // forward stream temperature should be less then backward stream
           if ( forwardTemp > 0 && backwardTemp > 0 && forwardTemp + 2*deviation < backwardTemp ) {
             return false;
           }
           // the temperature of the water floor should be less then 45
-          if( forwardTemp > 45 ) {
+          if( forwardTemp > 45 && forwardTempAcc > 45) {
             return false;
           }
         }
@@ -98,15 +101,8 @@ class ServoController {
     }
 
     void left() {
-      unsigned long currentMillis = millis();
-      //overflow (go back to zero), after approximately 50 days
-      //check overflow:
-      if(servoRegulatorStartMovementTime > currentMillis) {
-        servoRegulatorStartMovementTime = currentMillis;
-      }
-      
       if(movingLeftFlag) {
-        if (currentMillis - servoRegulatorStartMovementTime >= interval) {
+        if (outOfTimeInterval(millis(), servoRegulatorStartMovementTime, interval)) {
           // regulator is in a minimal position at this moment
           servo.stop();
           // but temperature is sill high
@@ -118,36 +114,30 @@ class ServoController {
         servo.left();
         movingLeftFlag = true;
         movingRightFlag = false;
-        servoRegulatorStartMovementTime = currentMillis;
+        servoRegulatorStartMovementTime = millis();
       }  
     }
 
     void right() {
-      unsigned long currentMillis = millis();
-      //overflow (go back to zero), after approximately 50 days
-      //check overflow:
-      if(servoRegulatorStartMovementTime > currentMillis) {
-        servoRegulatorStartMovementTime = currentMillis;
-      }
-      
       if(movingRightFlag) {
-        if (currentMillis - servoRegulatorStartMovementTime >= interval) {
+        if (outOfTimeInterval(millis(), servoRegulatorStartMovementTime, interval)) {
           // regulator is in a maximum position  at this moment
           servo.stop();
           // but temperature is sill low
           // stoping waterPomp to keep floor heated
           waterPomp(false);
+          waitingHigherTemp = true;
         }
       } else {
         waterPomp(true);
         servo.right();
         movingLeftFlag = false;
         movingRightFlag = true;
-        servoRegulatorStartMovementTime = currentMillis;
+        servoRegulatorStartMovementTime = millis();
       }
     }
 
-    void stop() {
+    void stopServoWaterPompOn() {
       // temperature of the water stream is close to required
       // keeping regulator in this position
       servo.stop();
@@ -168,8 +158,15 @@ class ServoController {
         digitalWrite(pinWaterPomp, LOW);
       }
     }
-    
 
+    bool outOfTimeInterval(const unsigned long currentMillis, unsigned long & startedTime, const long interval) {
+        //overflow (go back to zero), after approximately 50 days
+        //check overflow:
+        if(startedTime > currentMillis) {
+          startedTime = currentMillis;
+        }
+        return currentMillis - startedTime > interval;
+    }
 
 };
 
