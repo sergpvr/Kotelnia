@@ -34,7 +34,8 @@ class ServoController {
       }
 
       if (waitingHigherTemp) {
-        if ( forwardTemp > 40 || backwardTemp > 40 ) {
+        if ( forwardTemp > 40 || backwardTemp > 40 ||
+            outOfTimeInterval(millis(), waitingHigherTempTime, waitingHigherTempInterval)) {
           this->stopServoWaterPompOn();
           waitingHigherTemp = false;
         }
@@ -60,9 +61,11 @@ class ServoController {
     const int deviation = 1;
     static const int defaultRequiredTemp = 20;
     //
-    static const long interval = 150000; //150 sec
+    static const long interval = 150000; //150sec
     unsigned long servoRegulatorStartMovementTime = 0;
     unsigned long waterPompStartTime = 0;
+    unsigned long waitingHigherTempTime = 0;
+    static const long waitingHigherTempInterval = 1800000; //1800sec = 30min
     bool movingLeftFlag = false;
     bool movingRightFlag = false;
     bool waterPompFlag = false;
@@ -119,22 +122,30 @@ class ServoController {
     }
 
     void right() {
+      unsigned long currentMillis = millis();
       if(movingRightFlag) {
-        if (outOfTimeInterval(millis(), servoRegulatorStartMovementTime, interval)) {
-          // regulator is in a maximum position  at this moment
-          servo.stop();
-          // but temperature is sill low
-          // stoping waterPomp to keep floor heated
-          waterPomp(false);
-          waitingHigherTemp = true;
+        if (outOfTimeInterval(currentMillis, servoRegulatorStartMovementTime, interval)) {
+           if (!waitingHigherTemp) {
+             waitHigherTemp();
+           }
         }
       } else {
         waterPomp(true);
         servo.right();
         movingLeftFlag = false;
         movingRightFlag = true;
-        servoRegulatorStartMovementTime = millis();
+        servoRegulatorStartMovementTime = currentMillis;
       }
+    }
+
+    void waitHigherTemp() {
+           // regulator is in a maximum position  at this moment
+          servo.stop();
+          // but temperature is sill low
+          // stoping waterPomp to keep floor heated
+          waterPomp(false);
+          waitingHigherTemp = true; // waiting flag is ON
+          waitingHigherTempTime = millis();
     }
 
     void stopServoWaterPompOn() {
