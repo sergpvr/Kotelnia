@@ -58,6 +58,11 @@ class HeaterController {
       bool nightTime = hours == 23 || (hours >= 0 && hours < 7); // from 11 PM to 7 AM
       bool lastPartOfNight = hours >= 4 && hours < 7; // from 4 AM to 7 AM
 
+      if (!nightTime && !heatDuringTheDay) {
+        this->stop();
+        return;
+      }
+
       int allowedTemp =  lastPartOfNight ? nightAllowedTemp : dayAllowedTemp;
       int bottomLevelTemp = allowedTemp - (hours == 6 ? 5 : (lastPartOfNight? nightDeviation : deviation));
       

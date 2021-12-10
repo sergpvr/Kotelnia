@@ -125,9 +125,9 @@ class ServoController {
       unsigned long currentMillis = millis();
       if(movingRightFlag) {
         if (outOfTimeInterval(currentMillis, servoRegulatorStartMovementTime, interval)) {
-           if (!waitingHigherTemp) {
-             waitHigherTemp();
-           }
+          if (!waitingHigherTemp) {
+            waitHigherTemp();
+          }
         }
       } else {
         waterPomp(true);
